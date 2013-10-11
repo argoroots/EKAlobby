@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from google.appengine.api import urlfetch
+from google.appengine.api import memcache
 
 from operator import itemgetter
 from datetime import datetime, date
@@ -24,83 +25,86 @@ news_url  = 'http://beta.artun.ee/?feed=newsticker'
 timezone  = 'Europe/Tallinn'
 
 
-def _get_time(t):
-    return datetime.fromtimestamp(mktime(t.timetuple())).replace(tzinfo=tz.gettz(timezone))
-
-
-class GetRoomsCalendar(webapp2.RequestHandler):
-    def get(self, room=''):
-        room = room.strip('/')
-        calendars = []
-        try:
-            rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
-            for r in rooms:
-                if r.get('displayname')[:len(room)].upper() != room.upper():
-                    continue
-                if not r.get('properties', {}).get('calendar', {}).get('values'):
-                    continue
-                for v in r.get('properties', {}).get('calendar', {}).get('values'):
-                    if not v.get('value'):
-                        continue
-                    ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
-                    try:
-                        ical = Calendar.from_ical(ical_file)
-                    except Exception, e:
-                        continue
-                    calendar = []
-                    for c in ical.walk():
-                        if c.name != "VEVENT":
-                            continue
-                        if _get_time(c.get('dtstart').dt).date() > date.today():
-                            continue
-                        if _get_time(c.get('dtend').dt).date() < date.today():
-                            continue
-                        calendars.append({
-                            'name': r.get('displayname'),
-                            'info': r.get('displayinfo'),
-                            'start': str(_get_time(c.get('dtstart').dt)),
-                            'end': str(_get_time(c.get('dtend').dt)),
-                            'summary': c.get('summary'),
-                            # 'description': c.get('description'),
-                        })
-            calendars = sorted(calendars, key=itemgetter('start', 'name', 'info'))
-        except Exception, e:
-            logging.error(e)
-
-        self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
-        self.response.write(json.dumps(calendars))
-
-
-class GetNews(webapp2.RequestHandler):
-    def get(self):
-        news = []
-        try:
-            for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
-                news.append({
-                    'date': str(_get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate')))))),
-                    'title': n.get('title'),
-                    'description': n.get('description'),
-                })
-            news = sorted(news, key=itemgetter('date', 'title'))
-        except Exception, e:
-            logging.error(e)
-
-        self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
-        self.response.write(json.dumps(news))
-
-
 class ShowPage(webapp2.RequestHandler):
-    def get(self):
-
-        template = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__))), extensions=['jinja2.ext.autoescape']).get_template('template.html')
+    def get(self, room):
+        template = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__)))).get_template('template.html')
         self.response.out.write(template.render({
-            'logout': False,
+            'calendar':  _get_calendars(room)[:15],
+            'news': _get_news(),
         }))
 
 
+class FillMemcache(webapp2.RequestHandler):
+    def get(self):
+        _get_calendars()
+
+
+def _get_calendars(filter=''):
+    calendars = []
+    try:
+        rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
+        for r in rooms:
+            if r.get('displayname')[:len(filter)].upper() != filter.upper():
+                continue
+            if not r.get('properties', {}).get('calendar', {}).get('values'):
+                continue
+            for v in r.get('properties', {}).get('calendar', {}).get('values'):
+                if not v.get('value'):
+                    continue
+                try:
+                    ical_file = memcache.get('ical_%s' % v.get('id'))
+                    if not ical_file:
+                        ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
+                        memcache.add(key='ical_%s' % v.get('id'), value=calendars, time=86400)
+                    ical = Calendar.from_ical(ical_file)
+                except Exception, e:
+                    continue
+                calendar = []
+                for c in ical.walk():
+                    if c.name != "VEVENT":
+                        continue
+                    if _get_time(c.get('dtstart').dt).date() > date.today():
+                        continue
+                    if _get_time(c.get('dtend').dt).date() < date.today():
+                        continue
+                    calendars.append({
+                        'name': r.get('displayname'),
+                        'info': r.get('displayinfo'),
+                        'start': _get_time(c.get('dtstart').dt),
+                        'end': _get_time(c.get('dtend').dt),
+                        'summary': c.get('summary'),
+                    })
+        calendars = sorted(calendars, key=itemgetter('start', 'name', 'info'))
+        calendars.append({})
+    except Exception, e:
+        logging.error(e)
+    return calendars
+
+
+def _get_news():
+    news =  memcache.get('news')
+    if news:
+        return news
+    news = []
+    try:
+        for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
+            news.append({
+                'date': _get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))),
+                'title': n.get('title'),
+                'description': n.get('description'),
+            })
+        news = sorted(news, key=itemgetter('date', 'title'), reverse=True)
+    except Exception, e:
+        logging.error(e)
+    memcache.add(key='news', value=news, time=1800)
+    return news
+
+
+def _get_time(t):
+    return datetime.fromtimestamp(mktime(t.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
+
 
 app = webapp2.WSGIApplication([
-    (r'/room(.*)', GetRoomsCalendar),
-    ('/news', GetNews),
-    ('/', ShowPage),
+    ('/fill_memcache', FillMemcache),
+    (r'/(.*)', ShowPage),
 ], debug=True)

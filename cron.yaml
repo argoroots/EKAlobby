@@ -1,0 +1,4 @@
+cron:
+- description: Fill memcache with iCal files
+  url: /fill_memcache
+  schedule: every 10 minutes

@@ -1,24 +1,150 @@
 <!DOCTYPE html>
-{% autoescape true %}
 <html>
     <head>
         <meta charset="UTF-8">
         <title>EKA</title>
+        <meta http-equiv="refresh" content="3600">
+        <link href='https://fonts.googleapis.com/css?family=Voces&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <style type="text/css" media="screen, print">
+            html, body, table, tr, td, div, span, h1 {
+                margin: 0px;
+                padding: 0px;
+            }
             html, body {
+                overflow: hidden;
                 background: #68217a;
                 color: #ffffff;
+                font-family: 'Voces', cursive;
             }
+            table {
+                width: 70%;
+                border-collapse: collapse;
+            }
+            tr {
+                border-bottom: 1px solid #ffffff;
+            }
+            tr:last-child {
+                border-bottom: none;
+            }
+            td {
+                padding: 20px;
+                vertical-align: top;
+                text-align: left;
+                font-size: 30px;
+            }
+            td.nowrap {
+                white-space: nowrap;
+            }
+            #news {
+                position: fixed;
+                top: 0px;
+                right: 0px;
+                bottom: 0px;
+                width: 30%;
+                background: #ffffff;
+                color: #68217a;
+            }
+            .news-title {
+                display: block;
+                padding: 40px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 30px;
+            }
+            .news-description {
+                display: block;
+                padding: 0px 40px;
+                font-size: 20px;
+            }
+            .news-date {
+                display: block;
+                padding: 40px;
+                text-align: right;
+                font-style: italic;
+                font-size: 20px;
+            }
+            #time {
+                position: fixed;
+                right: 0px;
+                bottom: 0px;
+                z-index: 1000;
+                display: block;
+                padding: 40px 0px;
+                width: 30%;
+                text-align: center;
+                font-weight: bold;
+                font-size: 80px;
+            }
+            #time span {
+                display: block;
+                font-size: 30px;
+            }
+
         </style>
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9/jquery.min.js"></script>
     </head>
     <body>
-
+        <table border="0">
+            {% for c in calendar%}
+                <tr>
+                    {% if c.get('start') %}
+                        <td class="nowrap">{{ c.get('start').strftime('%H:%m') }} - {{ c.get('end').strftime('%H:%m') }}</td>
+                        <td class="nowrap">{{ c.get('name', '') }}</td>
+                        <td>{{ c.get('summary', '') }}</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+        <div id="news">
+            {% for n in news %}
+                <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
+                    <div class="news-title">{{ n.get('title', '') }}</div>
+                    <div class="news-description">{{ n.get('description', '') }}</div>
+                    <div class="news-date">{{ n.get('date').strftime('%d.%m.%Y') }}</div>
+                </div>
+            {% endfor %}
+            <div id="time">
+            </div>
+        </div>
     </body>
     <script>
         $(document).ready(function(){
 
+            function date_time() {
+
+                months = new Array('jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember');
+                days = new Array('pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev');
+
+                date = new Date;
+
+                year = date.getFullYear();
+                month = date.getMonth();
+                day = date.getDay();
+
+                d = date.getDate();
+                h = date.getHours();
+                m = date.getMinutes();
+                s = date.getSeconds();
+
+                if(h<10) h = '0'+h;
+                if(m<10) m = '0'+m;
+                if(s<10) s = '0'+s;
+
+                $('#time').html(h+':'+m+'<span>'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
+
+                rnd = Math.floor((Math.random() * $('.news-item').length) + 1);
+                $('.news-item').hide();
+                $('#news-item-'+rnd).show();
+
+                // time_top = ($(window).height() - $('#time').height() - 40)+'px';
+                // $('#time').css('top', time_top);
+
+                setTimeout(date_time, 10000);
+            }
+
+            date_time();
+
         });
+
     </script>
 </html>
-{% endautoescape %}
