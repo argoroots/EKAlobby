@@ -72,6 +72,7 @@
                 display: block;
                 padding: 40px 0px;
                 width: 30%;
+                background: #ffffff;
                 text-align: center;
                 font-weight: bold;
                 font-size: 80px;
@@ -87,11 +88,9 @@
         <table border="0">
             {% for c in calendar%}
                 <tr>
-                    {% if c.get('start') %}
-                        <td class="nowrap">{{ c.get('start').strftime('%H:%m') }} - {{ c.get('end').strftime('%H:%m') }}</td>
-                        <td class="nowrap">{{ c.get('name', '') }}</td>
-                        <td>{{ c.get('summary', '') }}</td>
-                    {% endif %}
+                    <td class="nowrap">{{ c.get('start').strftime('%H:%m') }} - {{ c.get('end').strftime('%H:%m') }}</td>
+                    <td class="nowrap">{{ c.get('name', '') }}</td>
+                    <td>{{ c.get('summary', '') }}</td>
                 </tr>
             {% endfor %}
         </table>

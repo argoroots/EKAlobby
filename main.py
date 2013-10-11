@@ -75,7 +75,6 @@ def _get_calendars(filter=''):
                         'summary': c.get('summary'),
                     })
         calendars = sorted(calendars, key=itemgetter('start', 'name', 'info'))
-        calendars.append({})
     except Exception, e:
         logging.error(e)
     return calendars
