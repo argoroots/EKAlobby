@@ -16,7 +16,7 @@ import json
 import webapp2
 
 
-rooms_url = 'https://dev.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room'
+rooms_url = 'https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room'
 news_url  = 'http://beta.artun.ee/?feed=newsticker'
 timezone  = 'Europe/Tallinn'
 
