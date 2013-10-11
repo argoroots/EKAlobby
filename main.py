@@ -10,10 +10,12 @@ from dateutil import tz
 from icalendar import Calendar, Event
 
 
+import os
 import rfc822
 import xmltodict
 import json
 import webapp2
+import jinja2
 import logging
 
 
@@ -87,7 +89,18 @@ class GetNews(webapp2.RequestHandler):
         self.response.write(json.dumps(news))
 
 
+class ShowPage(webapp2.RequestHandler):
+    def get(self):
+
+        template = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__))), extensions=['jinja2.ext.autoescape']).get_template('template.html')
+        self.response.out.write(template.render({
+            'logout': False,
+        }))
+
+
+
 app = webapp2.WSGIApplication([
     (r'/room(.*)', GetRoomsCalendar),
-    ('/news', GetNews)
+    ('/news', GetNews),
+    ('/', ShowPage),
 ], debug=True)
