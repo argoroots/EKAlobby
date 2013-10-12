@@ -36,10 +36,11 @@ class ShowPage(webapp2.RequestHandler):
 
 class FillMemcache(webapp2.RequestHandler):
     def get(self):
-        _get_calendars()
+        calendars = _get_calendars(ignore_dates=True)
+        logging.debug('Calendars: %s' % len(calendars))
 
 
-def _get_calendars(filter=''):
+def _get_calendars(filter='', ignore_dates=False):
     calendars = []
     try:
         rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
@@ -55,17 +56,19 @@ def _get_calendars(filter=''):
                 if not ical_file:
                     ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
                     memcache.add(key='ical_%s' % v.get('id'), value=ical_file, time=86400)
+                    logging.debug('Added iCal to Memcache: %s' % v.get('value'))
                 try:
                     ical = Calendar.from_ical(ical_file)
                 except Exception, e:
+                    logging.error('Cant open iCal: %s' % v.get('value'))
                     continue
                 calendar = []
                 for c in ical.walk():
                     if c.name != "VEVENT":
                         continue
-                    if _get_time(c.get('dtstart').dt).date() > _get_time(date.today()).date():
+                    if not ignore_dates and _get_time(c.get('dtstart').dt).date() > _get_time(date.today()).date():
                         continue
-                    if _get_time(c.get('dtend').dt).date() < _get_time(datetime.today()).date():
+                    if not ignore_dates and _get_time(c.get('dtend').dt).date() < _get_time(datetime.today()).date():
                         continue
                     calendars.append({
                         'name': r.get('displayname'),
@@ -97,11 +100,15 @@ def _get_news():
     except Exception, e:
         logging.error(e)
     memcache.add(key='news', value=news, time=1800)
+    logging.debug('News aaded to Memcache: %s' % len(news))
     return news
 
 
 def _get_time(t):
-    return datetime.fromtimestamp(mktime(t.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
+    try:
+        return datetime.fromtimestamp(mktime(t.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
+    except Exception, e:
+        logging.error('Invalid date: %s' % t)
 
 
 app = webapp2.WSGIApplication([
