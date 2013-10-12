@@ -51,11 +51,11 @@ def _get_calendars(filter=''):
             for v in r.get('properties', {}).get('calendar', {}).get('values'):
                 if not v.get('value'):
                     continue
+                ical_file = memcache.get('ical_%s' % v.get('id'))
+                if not ical_file:
+                    ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
+                    memcache.add(key='ical_%s' % v.get('id'), value=ical_file, time=86400)
                 try:
-                    ical_file = memcache.get('ical_%s' % v.get('id'))
-                    if not ical_file:
-                        ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
-                        memcache.add(key='ical_%s' % v.get('id'), value=ical_file, time=86400)
                     ical = Calendar.from_ical(ical_file)
                 except Exception, e:
                     continue
