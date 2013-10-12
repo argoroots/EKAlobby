@@ -99,7 +99,7 @@
         <table border="0">
             {% for c in calendar%}
                 <tr>
-                    <td class="nowrap">{{ c.get('start').strftime('%H:%m') }} - {{ c.get('end').strftime('%H:%m') }}</td>
+                    <td class="nowrap">{{ c.get('start').strftime('%H:%M') }} - {{ c.get('end').strftime('%H:%M') }}</td>
                     <td class="nowrap">{{ c.get('name', '') }}<span>{{ c.get('info', '') }}</span></td>
                     <td>{{ c.get('summary', '') }}</td>
                 </tr>
@@ -150,7 +150,7 @@
                 // time_top = ($(window).height() - $('#time').height() - 40)+'px';
                 // $('#time').css('top', time_top);
 
-                setTimeout(date_time, 10000);
+                setTimeout(date_time, 20000);
             }
 
             date_time();
