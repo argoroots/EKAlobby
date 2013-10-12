@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>EKA</title>
-        <meta http-equiv="refresh" content="3600">
+        <meta http-equiv="refresh" content="1800">
         <link href='https://fonts.googleapis.com/css?family=Voces&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <style type="text/css" media="screen, print">
@@ -28,10 +28,17 @@
                 border-bottom: none;
             }
             td {
-                padding: 20px;
-                vertical-align: top;
+                padding: 10px 20px;
+                vertical-align: middle;
                 text-align: left;
                 font-size: 30px;
+                line-height: 30px;
+            }
+            td span {
+                display: block;
+                padding-top: 5px;
+                font-size: 15px;
+                line-height: 15px;
             }
             td.nowrap {
                 white-space: nowrap;
@@ -89,7 +96,7 @@
             {% for c in calendar%}
                 <tr>
                     <td class="nowrap">{{ c.get('start').strftime('%H:%m') }} - {{ c.get('end').strftime('%H:%m') }}</td>
-                    <td class="nowrap">{{ c.get('name', '') }}</td>
+                    <td class="nowrap">{{ c.get('name', '') }}<span>{{ c.get('info', '') }}</span></td>
                     <td>{{ c.get('summary', '') }}</td>
                 </tr>
             {% endfor %}

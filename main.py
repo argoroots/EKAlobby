@@ -63,9 +63,9 @@ def _get_calendars(filter=''):
                 for c in ical.walk():
                     if c.name != "VEVENT":
                         continue
-                    if _get_time(c.get('dtstart').dt).date() > date.today():
+                    if _get_time(c.get('dtstart').dt).date() > _get_time(date.today()).date():
                         continue
-                    if _get_time(c.get('dtend').dt).date() < date.today():
+                    if _get_time(c.get('dtend').dt).date() < _get_time(datetime.today()).date():
                         continue
                     calendars.append({
                         'name': r.get('displayname'),
