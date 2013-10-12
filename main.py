@@ -21,7 +21,7 @@ import logging
 
 
 rooms_url = 'https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room'
-news_url  = 'http://beta.artun.ee/?feed=newsticker'
+news_url  = 'http://www.artun.ee/?feed=newsticker'
 timezone  = 'Europe/Tallinn'
 
 
@@ -55,7 +55,7 @@ def _get_calendars(filter=''):
                     ical_file = memcache.get('ical_%s' % v.get('id'))
                     if not ical_file:
                         ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
-                        memcache.add(key='ical_%s' % v.get('id'), value=calendars, time=86400)
+                        memcache.add(key='ical_%s' % v.get('id'), value=ical_file, time=86400)
                     ical = Calendar.from_ical(ical_file)
                 except Exception, e:
                     continue
@@ -91,6 +91,7 @@ def _get_news():
                 'date': _get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))),
                 'title': n.get('title'),
                 'description': n.get('description'),
+                'link': n.get('link'),
             })
         news = sorted(news, key=itemgetter('date', 'title'), reverse=True)
     except Exception, e:

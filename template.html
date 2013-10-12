@@ -14,7 +14,7 @@
             html, body {
                 overflow: hidden;
                 background: #68217a;
-                color: #ffffff;
+                color: white;
                 font-family: 'Voces', cursive;
             }
             table {
@@ -22,7 +22,7 @@
                 border-collapse: collapse;
             }
             tr {
-                border-bottom: 1px solid #ffffff;
+                border-bottom: 1px solid white;
             }
             tr:last-child {
                 border-bottom: none;
@@ -49,26 +49,30 @@
                 right: 0px;
                 bottom: 0px;
                 width: 30%;
-                background: #ffffff;
-                color: #68217a;
+                background: white;
+                color: black;
+            }
+            .news-qr {
+                display: block;
+                margin: 40px auto;
             }
             .news-title {
                 display: block;
-                padding: 40px;
+                padding: 0px 40px;
                 text-align: center;
                 font-weight: bold;
                 font-size: 30px;
             }
             .news-description {
                 display: block;
-                padding: 0px 40px;
+                padding: 40px;
                 font-size: 20px;
             }
             .news-date {
                 display: block;
-                padding: 40px;
+                padding: 0px 40px;
+                color: grey;
                 text-align: right;
-                font-style: italic;
                 font-size: 20px;
             }
             #time {
@@ -77,9 +81,10 @@
                 bottom: 0px;
                 z-index: 1000;
                 display: block;
-                padding: 40px 0px;
+                padding-bottom: 40px;
                 width: 30%;
-                background: #ffffff;
+                background: white;
+                color: #68217a;
                 text-align: center;
                 font-weight: bold;
                 font-size: 80px;
@@ -88,7 +93,6 @@
                 display: block;
                 font-size: 30px;
             }
-
         </style>
     </head>
     <body>
@@ -104,6 +108,7 @@
         <div id="news">
             {% for n in news %}
                 <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
+                    <img class="news-qr" src="https://chart.googleapis.com/chart?chs=160x160&cht=qr&chld=L|0&chl={{ n.get('link') }}" alt="QR" />
                     <div class="news-title">{{ n.get('title', '') }}</div>
                     <div class="news-description">{{ n.get('description', '') }}</div>
                     <div class="news-date">{{ n.get('date').strftime('%d.%m.%Y') }}</div>
