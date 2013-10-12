@@ -1,4 +1,4 @@
 cron:
-- description: Fill memcache with iCal files
-  url: /fill_memcache
-  schedule: every 10 minutes
+- description: Cache events data
+  url: /cache
+  schedule: every 30 minutes

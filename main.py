@@ -15,6 +15,7 @@ import os
 import rfc822
 import xmltodict
 import json
+import cPickle
 import webapp2
 import jinja2
 import logging
@@ -27,81 +28,89 @@ timezone  = 'Europe/Tallinn'
 
 class ShowPage(webapp2.RequestHandler):
     def get(self, room):
+        news = []
+        cache_events = []
+        events = []
+
+        try:
+            logging.info('Start')
+
+            news = _get_cache('news', [])
+            cache_events = _get_cache('events', [])
+
+            logging.info('Cache loaded')
+
+            for e in cache_events:
+                if e.get('room')[:len(room)].upper() != room.upper():
+                    continue
+                if e.get('start').date() > _get_time(date.today()).date():
+                    continue
+                if e.get('end') < _get_time(datetime.today()):
+                    continue
+                events.append(e)
+            events = sorted(events, key=itemgetter('start', 'room'))
+        except Exception, e:
+            logging.error(e)
+
+        logging.info('News: %s - Events: %s/%s' % (len(news), len(events), len(cache_events)))
+
         template = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__)))).get_template('template.html')
         self.response.out.write(template.render({
-            'calendar':  _get_calendars(room)[:15],
-            'news': _get_news(),
+            'news': news,
+            'events':  events,
         }))
 
 
 class FillMemcache(webapp2.RequestHandler):
     def get(self):
-        calendars = _get_calendars(ignore_dates=True)
-        logging.debug('Calendars: %s' % len(calendars))
+        memcache.flush_all()
+        try:
+            news = []
+            for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
+                news.append({
+                    'date': _get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))),
+                    'title': n.get('title'),
+                    'text': n.get('description'),
+                    'link': n.get('link'),
+                })
+            _set_cache(key='news', value=news, time=1800)
+            logging.info('News added to Memcache: %s' % len(news))
+        except Exception, e:
+            logging.error('News import: ' % e)
 
-
-def _get_calendars(filter='', ignore_dates=False):
-    calendars = []
-    try:
-        rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
-        for r in rooms:
-            if r.get('displayname')[:len(filter)].upper() != filter.upper():
-                continue
-            if not r.get('properties', {}).get('calendar', {}).get('values'):
-                continue
-            for v in r.get('properties', {}).get('calendar', {}).get('values'):
-                if not v.get('value'):
+        try:
+            events = []
+            rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
+            logging.info('Started to load %s rooms' % len(rooms))
+            for idx, r in enumerate(rooms):
+                if not r.get('properties', {}).get('calendar', {}).get('values'):
+                    logging.warning('#%s - %s - No iCal property' % (idx, r.get('displayname')))
                     continue
-                ical_file = memcache.get('ical_%s' % v.get('id'))
-                if not ical_file:
+                for v in r.get('properties', {}).get('calendar', {}).get('values'):
+                    if not v.get('value'):
+                        logging.warning('#%s - %s - No iCal URL' % (idx, r.get('displayname')))
+                        continue
                     ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
-                    memcache.add(key='ical_%s' % v.get('id'), value=ical_file, time=86400)
-                    logging.debug('Added iCal to Memcache: %s' % v.get('value'))
-                try:
-                    ical = Calendar.from_ical(ical_file)
-                except Exception, e:
-                    logging.error('Cant open iCal: %s' % v.get('value'))
-                    continue
-                calendar = []
-                for c in ical.walk():
-                    if c.name != "VEVENT":
+                    try:
+                        ical = Calendar.from_ical(ical_file)
+                        for c in ical.walk():
+                            if c.name != "VEVENT":
+                                continue
+                            events.append({
+                                'room': r.get('displayname'),
+                                'info': r.get('displayinfo'),
+                                'start': _get_time(c.get('dtstart').dt),
+                                'end': _get_time(c.get('dtend').dt),
+                                'summary': c.get('summary'),
+                            })
+                        logging.info('#%s - %s - OK' % (idx, r.get('displayname')))
+                    except Exception, e:
+                        logging.error('#%s - %s - Cant open %s' % (idx, r.get('displayname'), v.get('value')))
                         continue
-                    if not ignore_dates and _get_time(c.get('dtstart').dt).date() > _get_time(date.today()).date():
-                        continue
-                    if not ignore_dates and _get_time(c.get('dtend').dt).date() < _get_time(datetime.today()).date():
-                        continue
-                    calendars.append({
-                        'name': r.get('displayname'),
-                        'info': r.get('displayinfo'),
-                        'start': _get_time(c.get('dtstart').dt),
-                        'end': _get_time(c.get('dtend').dt),
-                        'summary': c.get('summary'),
-                    })
-        calendars = sorted(calendars, key=itemgetter('start', 'name', 'info'))
-    except Exception, e:
-        logging.error(e)
-    return calendars
-
-
-def _get_news():
-    news =  memcache.get('news')
-    if news:
-        return news
-    news = []
-    try:
-        for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
-            news.append({
-                'date': _get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))),
-                'title': n.get('title'),
-                'description': n.get('description'),
-                'link': n.get('link'),
-            })
-        news = sorted(news, key=itemgetter('date', 'title'), reverse=True)
-    except Exception, e:
-        logging.error(e)
-    memcache.add(key='news', value=news, time=1800)
-    logging.debug('News aaded to Memcache: %s' % len(news))
-    return news
+            _set_cache(key='events', value=events, time=86400)
+            logging.info('Events added to Memcache: %s' % len(events))
+        except Exception, e:
+            logging.error('Event import: ' % e)
 
 
 def _get_time(t):
@@ -111,7 +120,26 @@ def _get_time(t):
         logging.error('Invalid date: %s' % t)
 
 
+def _set_cache(key, value, time=1800):
+    l = 100000
+    value = cPickle.dumps(value)
+    values = [value[i:i+l] for i in range(0, len(value), l)]
+    for idx, v in enumerate(values):
+        memcache.add(key='%s_%s' % (key, idx), value=v, time=1800)
+    memcache.add(key=key, value=len(values), time=1800)
+
+
+def _get_cache(key, default=None):
+    c = memcache.get(key)
+    if not c:
+        return default
+    values = []
+    for idx in range(0, int(c)):
+        values.append(memcache.get(key='%s_%s' % (key, idx)))
+    return cPickle.loads(''.join(values))
+
+
 app = webapp2.WSGIApplication([
-    ('/fill_memcache', FillMemcache),
+    ('/cache', FillMemcache),
     (r'/(.*)', ShowPage),
 ], debug=True)

@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>EKA</title>
-        <meta http-equiv="refresh" content="1800">
+        <meta http-equiv="refresh" content="600">
         <link href='https://fonts.googleapis.com/css?family=Voces&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <style type="text/css" media="screen, print">
@@ -63,7 +63,7 @@
                 font-weight: bold;
                 font-size: 30px;
             }
-            .news-description {
+            .news-text {
                 display: block;
                 padding: 40px;
                 font-size: 20px;
@@ -97,11 +97,11 @@
     </head>
     <body>
         <table border="0">
-            {% for c in calendar%}
+            {% for e in events%}
                 <tr>
-                    <td class="nowrap">{{ c.get('start').strftime('%H:%M') }} - {{ c.get('end').strftime('%H:%M') }}</td>
-                    <td class="nowrap">{{ c.get('name', '') }}<span>{{ c.get('info', '') }}</span></td>
-                    <td>{{ c.get('summary', '') }}</td>
+                    <td class="nowrap">{{ e.get('start').strftime('%H:%M') }} - {{ e.get('end').strftime('%H:%M') }}</td>
+                    <td class="nowrap">{{ e.get('room', '') }}<span>{{ e.get('info', '') }}</span></td>
+                    <td>{{ e.get('summary', '') }}</td>
                 </tr>
             {% endfor %}
         </table>
@@ -110,7 +110,7 @@
                 <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
                     <img class="news-qr" src="https://chart.googleapis.com/chart?chs=160x160&cht=qr&chld=L|0&chl={{ n.get('link') }}" alt="QR" />
                     <div class="news-title">{{ n.get('title', '') }}</div>
-                    <div class="news-description">{{ n.get('description', '') }}</div>
+                    <div class="news-text">{{ n.get('text', '') }}</div>
                     <div class="news-date">{{ n.get('date').strftime('%d.%m.%Y') }}</div>
                 </div>
             {% endfor %}
@@ -122,7 +122,6 @@
         $(document).ready(function(){
 
             function date_time() {
-
                 months = new Array('jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember');
                 days = new Array('pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev');
 
@@ -143,17 +142,19 @@
 
                 $('#time').html(h+':'+m+'<span>'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
 
+                setTimeout(date_time, 1000);
+            }
+
+            function set_news() {
                 rnd = Math.floor((Math.random() * $('.news-item').length) + 1);
                 $('.news-item').hide();
                 $('#news-item-'+rnd).show();
 
-                // time_top = ($(window).height() - $('#time').height() - 40)+'px';
-                // $('#time').css('top', time_top);
-
-                setTimeout(date_time, 20000);
+                setTimeout(set_news, 20000);
             }
 
             date_time();
+            set_news();
 
         });
 
