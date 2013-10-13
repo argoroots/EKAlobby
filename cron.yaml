@@ -1,4 +1,4 @@
 cron:
 - description: Cache events data
   url: /cache
-  schedule: every 30 minutes
+  schedule: every 60 minutes

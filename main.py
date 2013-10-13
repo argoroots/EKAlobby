@@ -43,9 +43,9 @@ class ShowPage(webapp2.RequestHandler):
             for e in cache_events:
                 if e.get('room')[:len(room)].upper() != room.upper():
                     continue
-                if e.get('start').date() > _get_time(date.today()).date():
-                    continue
                 if e.get('end') < _get_time(datetime.today()):
+                    continue
+                if e.get('start').date() > _get_time(datetime.today()).date():
                     continue
                 events.append(e)
             events = sorted(events, key=itemgetter('start', 'room'))
@@ -63,7 +63,7 @@ class ShowPage(webapp2.RequestHandler):
 
 class FillMemcache(webapp2.RequestHandler):
     def get(self):
-        memcache.flush_all()
+        # memcache.flush_all()
         try:
             news = []
             for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
@@ -73,7 +73,7 @@ class FillMemcache(webapp2.RequestHandler):
                     'text': n.get('description'),
                     'link': n.get('link'),
                 })
-            _set_cache(key='news', value=news, time=1800)
+            _set_cache(key='news', value=news)
             logging.info('News added to Memcache: %s' % len(news))
         except Exception, e:
             logging.error('News import: ' % e)
@@ -96,6 +96,8 @@ class FillMemcache(webapp2.RequestHandler):
                         for c in ical.walk():
                             if c.name != "VEVENT":
                                 continue
+                            if _get_time(c.get('dtend').dt).date() < _get_time(datetime.today()).date():
+                                continue
                             events.append({
                                 'room': r.get('displayname'),
                                 'info': r.get('displayinfo'),
@@ -107,7 +109,7 @@ class FillMemcache(webapp2.RequestHandler):
                     except Exception, e:
                         logging.error('#%s - %s - Cant open %s' % (idx, r.get('displayname'), v.get('value')))
                         continue
-            _set_cache(key='events', value=events, time=86400)
+            _set_cache(key='events', value=events)
             logging.info('Events added to Memcache: %s' % len(events))
         except Exception, e:
             logging.error('Event import: ' % e)
@@ -120,13 +122,13 @@ def _get_time(t):
         logging.error('Invalid date: %s' % t)
 
 
-def _set_cache(key, value, time=1800):
+def _set_cache(key, value, time=86400):
     l = 100000
     value = cPickle.dumps(value)
     values = [value[i:i+l] for i in range(0, len(value), l)]
     for idx, v in enumerate(values):
-        memcache.add(key='%s_%s' % (key, idx), value=v, time=1800)
-    memcache.add(key=key, value=len(values), time=1800)
+        memcache.add(key='%s_%s' % (key, idx), value=v, time=time)
+    memcache.add(key=key, value=len(values), time=time)
 
 
 def _get_cache(key, default=None):
