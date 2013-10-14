@@ -29,17 +29,17 @@
                 border-bottom: none;
             }
             td {
-                padding: 10px 20px;
+                padding: 5px 20px;
                 vertical-align: middle;
                 text-align: left;
-                font-size: 30px;
-                line-height: 30px;
+                font-size: 20px;
+                line-height: 20px;
             }
             td span {
                 display: block;
-                padding-top: 5px;
-                font-size: 15px;
-                line-height: 15px;
+                padding-top: 1px;
+                font-size: 10px;
+                line-height: 10px;
             }
             td.nowrap {
                 white-space: nowrap;
@@ -55,26 +55,26 @@
             }
             .news-qr {
                 display: block;
-                margin: 40px auto;
+                margin: 20px auto;
             }
             .news-title {
                 display: block;
-                padding: 0px 40px;
+                padding: 0px 20px;
                 text-align: center;
                 font-weight: bold;
-                font-size: 30px;
+                font-size: 20px;
             }
             .news-text {
                 display: block;
-                padding: 40px;
-                font-size: 20px;
+                padding: 20px;
+                font-size: 15px;
             }
             .news-date {
                 display: block;
-                padding: 0px 40px;
+                padding: 0px 20px;
                 color: grey;
                 text-align: right;
-                font-size: 20px;
+                font-size: 15px;
             }
             #time {
                 position: fixed;
@@ -82,17 +82,20 @@
                 bottom: 0px;
                 z-index: 1000;
                 display: block;
-                padding-bottom: 40px;
+                padding-bottom: 20px;
                 width: 30%;
                 background: white;
                 color: #68217a;
                 text-align: center;
                 font-weight: bold;
-                font-size: 80px;
+                font-size: 60px;
             }
-            #time span {
+            #time span.date {
                 display: block;
-                font-size: 30px;
+                font-size: 20px;
+            }
+            #time span.hidden {
+                color: white;
             }
         </style>
     </head>
@@ -109,7 +112,7 @@
         <div id="news">
             {% for n in news %}
                 <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
-                    <img class="news-qr" src="https://chart.googleapis.com/chart?chs=160x160&cht=qr&chld=L|0&chl={{ n.get('link') }}" alt="QR" />
+                    <img class="news-qr" src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl={{ n.get('link') }}" alt="QR" />
                     <div class="news-title">{{ n.get('title', '') }}</div>
                     <div class="news-text">{{ n.get('text', '') }}</div>
                     <div class="news-date">{{ n.get('date').strftime('%d.%m.%Y') }}</div>
@@ -121,6 +124,23 @@
     </body>
     <script>
         $(document).ready(function(){
+
+            function requestFullScreen(element) {
+                // Supports most browsers and their versions.
+                var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+                if (requestMethod) { // Native full screen.
+                    requestMethod.call(element);
+                } else if (typeof window.ActiveXObject !== "undefined") { // Older IE.
+                    var wscript = new ActiveXObject("WScript.Shell");
+                    if (wscript !== null) {
+                        wscript.SendKeys("{F11}");
+                    }
+                }
+            }
+
+            var elem = document.body; // Make the body go full screen.
+            requestFullScreen(elem);
 
             function set_time() {
                 months = new Array('jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember');
@@ -140,14 +160,14 @@
                 if(s % 2) {
                     ts = ':';
                 } else {
-                    ts = '&#183;';
+                    ts = '<span class="hidden">:</span>';
                 }
 
                 if(h<10) h = '0'+h;
                 if(m<10) m = '0'+m;
                 if(s<10) s = '0'+s;
 
-                $('#time').html(h+ts+m+'<span>'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
+                $('#time').html(h+ts+m+'<span class="date">'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
 
                 setTimeout(set_time, 1000);
             }

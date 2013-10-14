@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from google.appengine.api import urlfetch
-from google.appengine.api import memcache
+from google.appengine.ext import ndb
 
 from operator import itemgetter
 from datetime import datetime, date
@@ -26,6 +26,11 @@ news_url  = 'http://www.artun.ee/?feed=newsticker'
 timezone  = 'Europe/Tallinn'
 
 
+class Cache(ndb.Model):
+  value = ndb.PickleProperty()
+  updated = ndb.DateTimeProperty(auto_now=True)
+
+
 class ShowPage(webapp2.RequestHandler):
     def get(self, room):
         news = []
@@ -38,7 +43,7 @@ class ShowPage(webapp2.RequestHandler):
             news = _get_cache('news', [])
             cache_events = _get_cache('events', [])
 
-            logging.info('Cache loaded')
+            logging.info('DB loaded')
 
             for e in cache_events:
                 if e.get('room')[:len(room)].upper() != room.upper():
@@ -48,7 +53,7 @@ class ShowPage(webapp2.RequestHandler):
                 if e.get('start').date() > _get_time(datetime.today()).date():
                     continue
                 events.append(e)
-            events = sorted(events, key=itemgetter('start', 'room'))
+            events = sorted(events, key=itemgetter('start', 'end', 'room', 'summary'))
         except Exception, e:
             logging.error(e)
 
@@ -63,7 +68,6 @@ class ShowPage(webapp2.RequestHandler):
 
 class FillMemcache(webapp2.RequestHandler):
     def get(self):
-        # memcache.flush_all()
         news = []
         events = []
 
@@ -75,7 +79,8 @@ class FillMemcache(webapp2.RequestHandler):
                     'text': n.get('description'),
                     'link': n.get('link'),
                 })
-            logging.info('News added to Memcache: %s' % len(news))
+            _set_cache(key='news', value=news)
+            logging.info('News added to DB: %s' % len(news))
         except Exception, e:
             logging.error('News import: ' % e)
 
@@ -109,13 +114,10 @@ class FillMemcache(webapp2.RequestHandler):
                     except Exception, e:
                         logging.error('#%s - %s - Cant open %s' % (idx, r.get('displayname'), v.get('value')))
                         continue
-            logging.info('Events added to Memcache: %s' % len(events))
+            _set_cache(key='events', value=events)
+            logging.info('Events added to DB: %s' % len(events))
         except Exception, e:
             logging.error('Event import: ' % e)
-
-        memcache.flush_all()
-        _set_cache(key='news', value=news)
-        _set_cache(key='events', value=events)
 
 
 def _get_time(t):
@@ -126,22 +128,14 @@ def _get_time(t):
 
 
 def _set_cache(key, value, time=86400):
-    l = 100000
-    value = cPickle.dumps(value)
-    values = [value[i:i+l] for i in range(0, len(value), l)]
-    for idx, v in enumerate(values):
-        memcache.add(key='%s_%s' % (key, idx), value=v, time=time)
-    memcache.add(key=key, value=len(values), time=time)
+    c = Cache(id=key)
+    c.value = value
+    c.put()
 
 
 def _get_cache(key, default=None):
-    c = memcache.get(key)
-    if not c:
-        return default
-    values = []
-    for idx in range(0, int(c)):
-        values.append(memcache.get(key='%s_%s' % (key, idx)))
-    return cPickle.loads(''.join(values))
+    c = Cache.get_by_id(key)
+    return c.value
 
 
 app = webapp2.WSGIApplication([
