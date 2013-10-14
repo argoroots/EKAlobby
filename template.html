@@ -2,8 +2,9 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>EKA</title>
+        <meta name="author" content="Argo Roots">
         <meta http-equiv="refresh" content="600">
+        <title>EKA Lobby</title>
         <link href='https://fonts.googleapis.com/css?family=Voces&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <style type="text/css" media="screen, print">
@@ -121,7 +122,7 @@
     <script>
         $(document).ready(function(){
 
-            function date_time() {
+            function set_time() {
                 months = new Array('jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember');
                 days = new Array('pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev');
 
@@ -136,13 +137,19 @@
                 m = date.getMinutes();
                 s = date.getSeconds();
 
+                if(s % 2) {
+                    ts = ':';
+                } else {
+                    ts = ' ';
+                }
+
                 if(h<10) h = '0'+h;
                 if(m<10) m = '0'+m;
                 if(s<10) s = '0'+s;
 
-                $('#time').html(h+':'+m+'<span>'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
+                $('#time').html(h+ts+m+'<span>'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
 
-                setTimeout(date_time, 1000);
+                setTimeout(set_time, 1000);
             }
 
             function set_news() {
@@ -153,7 +160,7 @@
                 setTimeout(set_news, 20000);
             }
 
-            date_time();
+            set_time();
             set_news();
 
         });

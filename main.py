@@ -64,8 +64,10 @@ class ShowPage(webapp2.RequestHandler):
 class FillMemcache(webapp2.RequestHandler):
     def get(self):
         # memcache.flush_all()
+        news = []
+        events = []
+
         try:
-            news = []
             for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
                 news.append({
                     'date': _get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))),
@@ -73,13 +75,11 @@ class FillMemcache(webapp2.RequestHandler):
                     'text': n.get('description'),
                     'link': n.get('link'),
                 })
-            _set_cache(key='news', value=news)
             logging.info('News added to Memcache: %s' % len(news))
         except Exception, e:
             logging.error('News import: ' % e)
 
         try:
-            events = []
             rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
             logging.info('Started to load %s rooms' % len(rooms))
             for idx, r in enumerate(rooms):
@@ -109,10 +109,13 @@ class FillMemcache(webapp2.RequestHandler):
                     except Exception, e:
                         logging.error('#%s - %s - Cant open %s' % (idx, r.get('displayname'), v.get('value')))
                         continue
-            _set_cache(key='events', value=events)
             logging.info('Events added to Memcache: %s' % len(events))
         except Exception, e:
             logging.error('Event import: ' % e)
+
+        memcache.flush_all()
+        _set_cache(key='news', value=news)
+        _set_cache(key='events', value=events)
 
 
 def _get_time(t):
