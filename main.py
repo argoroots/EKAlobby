@@ -112,12 +112,12 @@ class FillMemcache(webapp2.RequestHandler):
                             })
                         logging.info('#%s - %s - OK' % (idx, r.get('displayname')))
                     except Exception, e:
-                        logging.error('#%s - %s - Cant open %s' % (idx, r.get('displayname'), v.get('value')))
+                        logging.warning('#%s - %s - Cant open %s' % (idx, r.get('displayname'), v.get('value')))
                         continue
             _set_cache(key='events', value=events)
             logging.info('Events added to DB: %s' % len(events))
         except Exception, e:
-            logging.error('Event import: ' % e)
+            logging.error('Event import: %s' % e)
 
 
 def _get_time(t):
