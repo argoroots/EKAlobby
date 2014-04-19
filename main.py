@@ -106,6 +106,9 @@ class FillMemcache(webapp2.RequestHandler):
                 if not post:
                     post = News(id=guid)
 
+                if post.date == datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate')))) and post.title == n.get('title') and post.text == n.get('description') and post.link == n.get('link'):
+                    continue
+
                 post.date  = datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))
                 post.title = n.get('title')
                 post.text  = n.get('description')
@@ -138,6 +141,9 @@ class FillMemcache(webapp2.RequestHandler):
                                 event = ndb.Key(Events, guid).get()
                                 if not event:
                                     event = Events(id=guid)
+
+                                if event.room == r.get('displayname') and event.info == r.get('displayinfo') and event.start == datetime.fromtimestamp(mktime(ical_event.dtstart.value.timetuple())) and event.end == datetime.fromtimestamp(mktime(ical_event.dtend.value.timetuple())) and event.summary == ical_event.summary.value:
+                                    continue
 
                                 event.room    = r.get('displayname')
                                 event.info    = r.get('displayinfo')
