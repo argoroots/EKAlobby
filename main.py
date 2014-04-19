@@ -4,7 +4,7 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
 from operator import itemgetter
-from datetime import datetime, date
+from datetime import datetime
 from time import mktime
 from dateutil import tz
 
@@ -13,7 +13,6 @@ import os
 import rfc822
 import xmltodict
 import json
-import cPickle
 import webapp2
 import jinja2
 import logging
@@ -25,9 +24,31 @@ news_url  = 'http://www.artun.ee/?feed=newsticker'
 timezone  = 'Europe/Tallinn'
 
 
-class Cache(ndb.Model):
-  value = ndb.PickleProperty()
-  updated = ndb.DateTimeProperty(auto_now=True)
+class News(ndb.Model):
+    date  = ndb.DateTimeProperty(indexed=False)
+    title = ndb.StringProperty(indexed=False)
+    text  = ndb.TextProperty(indexed=False)
+    link  = ndb.TextProperty(indexed=False)
+
+    @property
+    def local_date(self):
+        return datetime.fromtimestamp(mktime(self.date.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
+
+
+class Events(ndb.Model):
+    room    = ndb.StringProperty(indexed=False)
+    info    = ndb.StringProperty(indexed=False)
+    start   = ndb.DateTimeProperty(indexed=False)
+    end     = ndb.DateTimeProperty()
+    summary = ndb.TextProperty(indexed=False)
+
+    @property
+    def local_start(self):
+        return datetime.fromtimestamp(mktime(self.start.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
+
+    @property
+    def local_end(self):
+        return datetime.fromtimestamp(mktime(self.end.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
 
 
 class ShowPage(webapp2.RequestHandler):
@@ -39,24 +60,29 @@ class ShowPage(webapp2.RequestHandler):
         try:
             logging.info('Start')
 
-            news = _get_cache('news', [])
-            cache_events = _get_cache('events', [])
+            news = News.query()
+            cache_events = Events.query(Events.end >= datetime.today())
+            events = []
 
             logging.info('DB loaded')
 
             for e in cache_events:
-                if e.get('room')[:len(room)].upper() != room.upper():
+                if e.room[:len(room)].upper() != room.upper():
                     continue
-                if e.get('end') < _get_time(datetime.today()):
+                if e.start > datetime.today():
                     continue
-                if e.get('start').date() > _get_time(datetime.today()).date():
-                    continue
-                events.append(e)
+                events.append({
+                    'room':    e.room,
+                    'info':    e.info,
+                    'start':   e.local_start,
+                    'end':     e.local_end,
+                    'summary': e.summary,
+                })
             events = sorted(events, key=itemgetter('start', 'end', 'room', 'summary'))
         except Exception, e:
             logging.error(e)
 
-        logging.info('News: %s - Events: %s/%s' % (len(news), len(events), len(cache_events)))
+        logging.info('News: %s - Events: %s/%s' % (news.count(), len(events), cache_events.count()))
 
         template = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__)))).get_template('template.html')
         self.response.out.write(template.render({
@@ -72,16 +98,23 @@ class FillMemcache(webapp2.RequestHandler):
 
         try:
             for n in xmltodict.parse(urlfetch.fetch(news_url, deadline=100).content).get('rss', {}).get('channel', {}).get('item'):
-                news.append({
-                    'date': _get_time(datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))),
-                    'title': n.get('title'),
-                    'text': n.get('description'),
-                    'link': n.get('link'),
-                })
-            _set_cache(key='news', value=news)
+                guid = n.get('guid', {}).get('#text')
+                if not guid:
+                    continue
+
+                post = ndb.Key(News, guid).get()
+                if not post:
+                    post = News(id=guid)
+
+                post.date  = datetime.fromtimestamp(mktime(rfc822.parsedate(n.get('pubDate'))))
+                post.title = n.get('title')
+                post.text  = n.get('description')
+                post.link  = n.get('link')
+                post.put()
+
             logging.info('News added to DB: %s' % len(news))
         except Exception, e:
-            logging.error('News import: ' % e)
+            logging.error('News import: %s' % e)
 
         try:
             rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
@@ -96,45 +129,30 @@ class FillMemcache(webapp2.RequestHandler):
                         continue
                     try:
                         ical_file = urlfetch.fetch(v.get('value'), deadline=100).content
-                        for component in vobject.readComponents(ical_file):
-                            for event in component.vevent_list:
-                                if _get_time(event.dtend.value).date() < _get_time(datetime.today()).date():
+                        for ical_component in vobject.readComponents(ical_file):
+                            for ical_event in ical_component.vevent_list:
+                                guid = '%s-%s' % (r.get('id'), ical_event.uid.value)
+                                if not guid:
                                     continue
 
-                                events.append({
-                                    'room': r.get('displayname'),
-                                    'info': r.get('displayinfo'),
-                                    'start': _get_time(event.dtstart.value),
-                                    'end': _get_time(event.dtend.value),
-                                    'summary': event.summary.value,
-                                })
+                                event = ndb.Key(Events, guid).get()
+                                if not event:
+                                    event = Events(id=guid)
+
+                                event.room    = r.get('displayname')
+                                event.info    = r.get('displayinfo')
+                                event.start   = datetime.fromtimestamp(mktime(ical_event.dtstart.value.timetuple()))
+                                event.end     = datetime.fromtimestamp(mktime(ical_event.dtend.value.timetuple()))
+                                event.summary = ical_event.summary.value
+                                event.put()
 
                         logging.info('#%s - %s - OK' % (idx, r.get('displayname')))
                     except Exception, e:
                         logging.warning('#%s - %s - Cant open %s (%s)' % (idx, r.get('displayname'), v.get('value'), e))
                         continue
-            _set_cache(key='events', value=events)
             logging.info('Events added to DB: %s' % len(events))
         except Exception, e:
             logging.error('Event import: %s' % e)
-
-
-def _get_time(t):
-    try:
-        return datetime.fromtimestamp(mktime(t.timetuple())).replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz(timezone))
-    except Exception, e:
-        logging.error('Invalid date: %s' % t)
-
-
-def _set_cache(key, value, time=86400):
-    c = Cache(id=key)
-    c.value = value
-    c.put()
-
-
-def _get_cache(key, default=None):
-    c = Cache.get_by_id(key)
-    return c.value
 
 
 app = webapp2.WSGIApplication([

@@ -104,18 +104,18 @@
             {% for e in events%}
                 <tr>
                     <td class="nowrap">{{ e.get('start').strftime('%H:%M') }} - {{ e.get('end').strftime('%H:%M') }}</td>
-                    <td class="nowrap">{{ e.get('room', '') }}<span>{{ e.get('info', '') }}</span></td>
-                    <td>{{ e.get('summary', '') }}</td>
+                    <td class="nowrap">{{ e.get('room') }}<span>{{ e.get('info') }}</span></td>
+                    <td>{{ e.summary }}</td>
                 </tr>
             {% endfor %}
         </table>
         <div id="news">
             {% for n in news %}
                 <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
-                    <img class="news-qr" src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl={{ n.get('link') }}" alt="QR" />
-                    <div class="news-title">{{ n.get('title', '') }}</div>
-                    <div class="news-text">{{ n.get('text', '') }}</div>
-                    <div class="news-date">{{ n.get('date').strftime('%d.%m.%Y') }}</div>
+                    <img class="news-qr" src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl={{ n.link }}" alt="QR" />
+                    <div class="news-title">{{ n.title }}</div>
+                    <div class="news-text">{{ n.text }}</div>
+                    <div class="news-date">{{ n.local_date.strftime('%d.%m.%Y') }}</div>
                 </div>
             {% endfor %}
             <div id="time">
