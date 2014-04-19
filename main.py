@@ -83,7 +83,7 @@ class FillMemcache(webapp2.RequestHandler):
         except Exception, e:
             logging.error('News import: ' % e)
 
-       try:
+        try:
             rooms = json.loads(urlfetch.fetch(rooms_url, deadline=100).content)
             logging.info('Started to load %s rooms' % len(rooms))
             for idx, r in enumerate(rooms):
@@ -115,8 +115,8 @@ class FillMemcache(webapp2.RequestHandler):
                         continue
             _set_cache(key='events', value=events)
             logging.info('Events added to DB: %s' % len(events))
-       except Exception, e:
-           logging.error('Event import: %s' % e)
+        except Exception, e:
+            logging.error('Event import: %s' % e)
 
 
 def _get_time(t):
