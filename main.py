@@ -25,10 +25,12 @@ timezone  = 'Europe/Tallinn'
 
 
 class News(ndb.Model):
-    date  = ndb.DateTimeProperty(indexed=False)
-    title = ndb.StringProperty(indexed=False)
-    text  = ndb.TextProperty(indexed=False)
-    link  = ndb.TextProperty(indexed=False)
+    x_created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
+    x_updated = ndb.DateTimeProperty(indexed=False, auto_now=True)
+    date      = ndb.DateTimeProperty(indexed=False)
+    title     = ndb.StringProperty(indexed=False)
+    text      = ndb.TextProperty(indexed=False)
+    link      = ndb.TextProperty(indexed=False)
 
     @property
     def local_date(self):
@@ -36,11 +38,13 @@ class News(ndb.Model):
 
 
 class Events(ndb.Model):
-    room    = ndb.StringProperty(indexed=False)
-    info    = ndb.StringProperty(indexed=False)
-    start   = ndb.DateTimeProperty(indexed=False)
-    end     = ndb.DateTimeProperty()
-    summary = ndb.TextProperty(indexed=False)
+    x_created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
+    x_updated = ndb.DateTimeProperty(indexed=False, auto_now=True)
+    room      = ndb.StringProperty(indexed=False)
+    info      = ndb.StringProperty(indexed=False)
+    start     = ndb.DateTimeProperty(indexed=False)
+    end       = ndb.DateTimeProperty()
+    summary   = ndb.TextProperty(indexed=False)
 
     @property
     def local_start(self):
