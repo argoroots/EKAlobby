@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="et">
     <head>
         <meta charset="UTF-8">
         <meta name="author" content="Argo Roots">
         <meta http-equiv="refresh" content="600">
         <title>EKA Lobby</title>
         <link href='https://fonts.googleapis.com/css?family=Voces&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script   src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
         <style type="text/css" media="screen, print">
             html, body, table, tr, td, div, span, h1 {
                 margin: 0px;
@@ -101,72 +101,66 @@
     </head>
     <body>
         <table border="0">
-            {% for e in events%}
-                <tr>
-                    <td class="nowrap">{{ e.get('start').strftime('%H:%M') }} - {{ e.get('end').strftime('%H:%M') }}</td>
-                    <td class="nowrap">{{ e.get('room') }}<span>{{ e.get('info') }}</span></td>
-                    <td>{{ e.summary }}</td>
-                </tr>
-            {% endfor %}
+            <tr>
+                <td class="nowrap">{{ e.get('start').strftime('%H:%M') }} - {{ e.get('end').strftime('%H:%M') }}</td>
+                <td class="nowrap">{{ e.get('room') }}<span>{{ e.get('info') }}</span></td>
+                <td>{{ e.summary }}</td>
+            </tr>
         </table>
         <div id="news">
-            {% for n in news %}
-                <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
-                    <img class="news-qr" src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl={{ n.link }}" alt="QR" />
-                    <div class="news-title">{{ n.title }}</div>
-                    <div class="news-text">{{ n.text }}</div>
-                    <div class="news-date">{{ n.local_date.strftime('%d.%m.%Y') }}</div>
-                </div>
-            {% endfor %}
+            <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
+                <img class="news-qr" src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl={{ n.link }}" alt="QR" />
+                <div class="news-title">{{ n.title }}</div>
+                <div class="news-text">{{ n.text }}</div>
+                <div class="news-date">{{ n.local_date.strftime('%d.%m.%Y') }}</div>
+            </div>
             <div id="time">
             </div>
         </div>
     </body>
     <script>
-        $(document).ready(function(){
+        $(function() {
+            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
+                console.log(data)
+            })
 
-            function set_time() {
-                months = new Array('jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember');
-                days = new Array('pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev');
+            function setTime() {
+                var months = ['jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember']
+                var days = ['pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev']
 
-                date = new Date;
+                var date = new Date()
 
-                year = date.getFullYear();
-                month = date.getMonth();
-                day = date.getDay();
+                var year = date.getFullYear()
+                var month = date.getMonth()
+                var day = date.getDay()
 
-                d = date.getDate();
-                h = date.getHours();
-                m = date.getMinutes();
-                s = date.getSeconds();
+                var d = date.getDate()
+                var h = date.getHours()
+                var m = date.getMinutes()
+                var s = date.getSeconds()
 
-                if(s % 2) {
-                    ts = ':';
+                if (s % 2) {
+                    var ts = ':'
                 } else {
-                    ts = '<span class="hidden">:</span>';
+                    var ts = '<span class="hidden">:</span>'
                 }
 
-                if(h<10) h = '0'+h;
-                if(m<10) m = '0'+m;
-                if(s<10) s = '0'+s;
+                if (h < 10) { h = '0' + h }
+                if (m < 10) { m = '0' + m }
+                if (s < 10) { s = '0' + s }
 
-                $('#time').html(h+ts+m+'<span class="date">'+days[day]+', '+d+'. '+months[month]+' '+year+'</span>');
-
-                setTimeout(set_time, 1000);
+                $('#time').html(h + ts + m + '<span class="date">' + days[day] + ', ' + d + '. ' + months[month] + ' ' + year + '</span>')
             }
+            setInterval(setTime, 1000)
 
-            function set_news() {
-                rnd = Math.floor((Math.random() * $('.news-item').length) + 1);
-                $('.news-item').hide();
-                $('#news-item-'+rnd).show();
+            // function set_news() {
+            //     rnd = Math.floor((Math.random() * $('.news-item').length) + 1)
+            //     $('.news-item').hide()
+            //     $('#news-item-'+rnd).show()
+            //
+            //     setTimeout(set_news, 20000)
+            // }
 
-                setTimeout(set_news, 20000);
-            }
-
-            set_time();
-            set_news();
-
-        });
-
+        })
     </script>
 </html>
