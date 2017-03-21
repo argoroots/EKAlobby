@@ -116,7 +116,7 @@
     <script>
         $(function() {
             var getDate = function (dtStr) {
-                date = new date(dtStr)
+                var date = new Date(dtStr)
 
                 var d = date.getDay()
                 var m = date.getMonth() + 1
@@ -129,7 +129,7 @@
             }
 
             var getTime = function (dtStr) {
-                date = new date(dtStr)
+                var date = new Date(dtStr)
 
                 var h = date.getHours()
                 var m = date.getMinutes()
