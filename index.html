@@ -194,7 +194,7 @@
             $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function(data) {
                 for (let i = 0; i < data.length; i++) {
                     var tr = ''
-                    tr += '<tr>'
+                    tr += '<tr data-start="' + data[i].start + '" data-end="' + data[i].end + '">'
                     tr += '<td class="nowrap">'
                     tr += getTime(data[i].start) + ' - ' + getTime(data[i].end)
                     tr += '</td>'
