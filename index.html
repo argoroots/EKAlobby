@@ -191,6 +191,15 @@
             })
 
 
+            var setEvents = function () {
+                $('#events tr').each(function () {
+                    var tr = $(this)
+                    var end = new Date(tr.data('end'))
+
+                    if (end < new Date()) { tr.hide() }
+                })
+            }
+
             $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function(data) {
                 for (let i = 0; i < data.length; i++) {
                     var tr = ''
@@ -207,6 +216,9 @@
                     tr += '</tr>'
                     $('#events').append(tr)
                 }
+
+                setInterval(setEvents, 60000)
+                setEvents()
             })
         })
     </script>
