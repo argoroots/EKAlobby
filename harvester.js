@@ -78,7 +78,11 @@ var doHarvest = () => {
         var events = []
         async.each(rooms, (room, callback) => {
             ical.fromURL(room.ical, {}, function(err, data) {
-                if(err) { return callback(err) }
+                if (err) {
+                    console.error(room.ical)
+                    console.error(err)
+                    return callback(null)
+                }
 
                 for (let k in data) {
                     if (!data.hasOwnProperty(k)) { continue }
