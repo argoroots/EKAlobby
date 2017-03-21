@@ -101,11 +101,6 @@
     </head>
     <body>
         <table id="events" border="0">
-            <tr>
-                <td class="nowrap">{{ e.get('start').strftime('%H:%M') }} - {{ e.get('end').strftime('%H:%M') }}</td>
-                <td class="nowrap">{{ e.get('room') }}<span>{{ e.get('info') }}</span></td>
-                <td>{{ e.summary }}</td>
-            </tr>
         </table>
         <div id="news">
             <div id="news-item">
@@ -120,6 +115,31 @@
     </body>
     <script>
         $(function() {
+            var getDate = function (dtStr) {
+                date = new date(dtStr)
+
+                var d = date.getDay()
+                var m = date.getMonth() + 1
+                var y = date.getFullYear()
+
+                if (d < 10) { d = '0' + d }
+                if (m < 10) { m = '0' + m }
+
+                return d + '.' + m + '.' + y
+            }
+
+            var getTime = function (dtStr) {
+                date = new date(dtStr)
+
+                var h = date.getHours()
+                var m = date.getMinutes()
+
+                if (h < 10) { h = '0' + h }
+                if (m < 10) { m = '0' + m }
+
+                return h + ':' + m
+            }
+
             var setTime = function () {
                 var months = ['jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember']
                 var days = ['pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev']
@@ -154,11 +174,10 @@
             var news = []
             var currentNews = 0
             var setNews = function () {
-                var date = new Date(news[currentNews].date)
                 $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
                 $('#news-title').html(news[currentNews].title)
                 $('#news-text').html(news[currentNews].text)
-                $('#news-date').html(date.getDate() + '.' + date.getMonth() + 1 + '.' + date.getFullYear())
+                $('#news-date').html(getDate(news[currentNews].date))
 
                 currentNews++
                 if (currentNews >= news.length) { currentNews = 0 }
@@ -174,13 +193,10 @@
 
             $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function(data) {
                 for (let i = 0; i < data.length; i++) {
-                    var start = new Date(data[i].start)
-                    var end = new Date(data[i].end)
-
                     var tr = ''
                     tr += '<tr>'
                     tr += '<td class="nowrap">'
-                    tr += start.getHours() + ':' + start.getMinutes() + ' - ' + end.getHours() + ':' + end.getMinutes()
+                    tr += getTime(data[i].start) + ' - ' + getTime(data[i].end)
                     tr += '</td>'
                     tr += '<td class="nowrap">'
                     tr += data[i].title + '<span>' + data[i].info + '</span>'
