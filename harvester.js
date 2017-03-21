@@ -61,7 +61,7 @@ var doHarvest = () => {
     console.log('')
 
     getNews('http://www.artun.ee/?feed=newsticker', (err, news) => {
-        if (err) { console.error(err) }
+        if (err) { return console.error(err) }
 
         sortedNews = _.sortBy(news, ['date'])
 
@@ -71,7 +71,7 @@ var doHarvest = () => {
     })
 
     getRooms('https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room', (err, rooms) => {
-        if (err) { console.error(err) }
+        if (err) { return console.error(err) }
 
         console.log((new Date()).toISOString(), `Rooms: ${rooms.length}`)
 
@@ -97,7 +97,7 @@ var doHarvest = () => {
                 callback(null)
             })
         }, err => {
-            if (err) { console.error(err) }
+            if (err) { return console.error(err) }
 
             sortedEvents = _.sortBy(events, ['start', 'end', 'title'])
 
