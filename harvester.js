@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const async = require('async')
+const crypto = require('crypto')
 const entities = require('html-entities').AllHtmlEntities
 const fs = require('fs')
 const ical = require('ical')
@@ -9,7 +10,12 @@ const path = require('path')
 const request = require('request')
 
 
-const interval = 1000 * 60 * 15
+const interval = 1000 * 60 * 20
+
+const newsFile = path.resolve(__dirname, 'json', 'news.json')
+const eventsFile = path.resolve(__dirname, 'json', 'events.json')
+var newsMd5
+var eventsMd5
 
 
 var getNews = (news_url, callback) => {
@@ -57,23 +63,36 @@ var getRooms = (rooms_url, callback) => {
 }
 
 
-var doHarvest = () => {
-    console.log('')
+var getMd5 = (str) => {
+    return crypto.createHash('md5').update(str, 'utf8').digest('hex')
+}
 
+
+var getFileMd5 = (path) => {
+    if (!fs.existsSync(path)) { return }
+
+    return getMd5(fs.readFileSync(path, 'utf8'))
+}
+
+
+var doHarvest = () => {
     getNews('http://www.artun.ee/?feed=newsticker', (err, news) => {
         if (err) { return console.error(err) }
 
-        sortedNews = _.sortBy(news, ['date'])
+        var sortedNews = JSON.stringify(_.sortBy(news, ['date']))
 
-        fs.writeFile(path.resolve(__dirname, 'json', 'news.json'), JSON.stringify(sortedNews), 'utf8', () => {
-            console.log((new Date()).toISOString(), `News: ${sortedNews.length}`);
-        })
+        if (getMd5(sortedNews) === (newsMd5 || getFileMd5(newsFile))) {
+            // console.log((new Date()).toISOString(), `News: not changed`)
+        } else {
+            fs.writeFile(newsFile, sortedNews, 'utf8', () => {
+                newsMd5 = getFileMd5(newsFile)
+                console.log((new Date()).toISOString(), `News: ${news.length}`)
+            })
+        }
     })
 
     getRooms('https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room', (err, rooms) => {
         if (err) { return console.error(err) }
-
-        console.log((new Date()).toISOString(), `Rooms: ${rooms.length}`)
 
         var events = []
         async.each(rooms, (room, callback) => {
@@ -103,11 +122,16 @@ var doHarvest = () => {
         }, err => {
             if (err) { return console.error(err) }
 
-            sortedEvents = _.sortBy(events, ['start', 'end', 'title'])
+            var sortedEvents = JSON.stringify(_.sortBy(events, ['start', 'end', 'title']))
 
-            fs.writeFile(path.resolve(__dirname, 'json', 'events.json'), JSON.stringify(sortedEvents), 'utf8', () => {
-                console.log((new Date()).toISOString(), `Events: ${sortedEvents.length}`)
-            })
+            if (getMd5(sortedEvents) === (eventsMd5 || getFileMd5(eventsFile))) {
+                // console.log((new Date()).toISOString(), `Events: not changed`)
+            } else {
+                fs.writeFile(eventsFile, sortedEvents, 'utf8', () => {
+                    eventsMd5 = getFileMd5(eventsFile)
+                    console.log((new Date()).toISOString(), `Events: ${events.length}`)
+                })
+            }
         })
     })
 }
