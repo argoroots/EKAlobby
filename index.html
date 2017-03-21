@@ -206,7 +206,7 @@
                     tr += '<tr data-start="' + data[i].start + '" data-end="' + data[i].end + '">'
                     tr += '<td class="nowrap">'
                     tr += getTime(data[i].start) + ' - ' + getTime(data[i].end)
-                    if ((new Date(data[i].start).toDateString() !== (new Date()).toDateString()) {
+                    if ((new Date(data[i].start)).toDateString() !== (new Date()).toDateString()) {
                         tr += '<span>' + getDate(data[i].start) + '</span>'
                     }
                     tr += '</td>'
