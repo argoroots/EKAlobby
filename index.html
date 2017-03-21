@@ -62,19 +62,19 @@
                 padding: 10px 20px;
                 text-align: center;
                 font-weight: bold;
-                font-size: 22pt;
+                font-size: 20pt;
             }
             #news-text {
                 display: block;
                 padding: 20pt;
-                font-size: 16pt;
+                font-size: 15pt;
             }
             #news-date {
                 display: block;
                 padding: 0px 20px;
                 color: grey;
                 text-align: right;
-                font-size: 16pt;
+                font-size: 13pt;
             }
             #time {
                 position: fixed;
@@ -104,7 +104,7 @@
         </table>
         <div id="news">
             <div id="news-item">
-                <!-- img id="news-qr" data-src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl=" alt="QR" /-->
+                <img id="news-qr" data-src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl=" alt="QR" style="display:none" />
                 <div id="news-title"></div>
                 <div id="news-text"></div>
                 <div id="news-date"></div>
@@ -174,7 +174,7 @@
             var news = []
             var currentNews = 0
             var setNews = function () {
-                // $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
+                $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
                 $('#news-title').html(news[currentNews].title)
                 $('#news-text').html(news[currentNews].text)
                 $('#news-date').html(getDate(news[currentNews].date))
