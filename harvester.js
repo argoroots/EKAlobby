@@ -8,6 +8,8 @@ const parseString = require('xml2js').parseString
 const request = require('request')
 
 
+const interval = 1000 * 60 * 15
+
 
 var getNews = (news_url, callback) => {
     request.get({url: news_url, strictSSL: true, timeout: 1000}, (err, response, body) => {
@@ -54,50 +56,52 @@ var getRooms = (rooms_url, callback) => {
 }
 
 
-getNews('http://www.artun.ee/?feed=newsticker', (err, news) => {
-    if (err) { console.error(err) }
-
-    sortedNews = _.sortBy(news, ['date'])
-
-    fs.writeFile('./news.json', JSON.stringify(sortedNews, null, 3), 'utf8', () => {
-        console.log((new Date()).toISOString(), '- Harvested news');
-    })
-})
-
-
-getRooms('https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room', (err, rooms) => {
-    if (err) { console.error(err) }
-
-    console.log((new Date()).toISOString(), '- Harvested rooms')
-
-    var events = []
-    async.each(rooms, (room, callback) => {
-        ical.fromURL(room.ical, {}, function(err, data) {
-            if(err) { return callback(err) }
-
-            for (let k in data) {
-                if (!data.hasOwnProperty(k)) { continue }
-                if (op.get(data, [k, 'type']) !== 'VEVENT') { continue }
-
-                events.push({
-                    title: room.title,
-                    info: room.info,
-                    start: op.get(data, [k, 'start']),
-                    end: op.get(data, [k, 'end']),
-                    summary: entities.decode(op.get(data, [k, 'summary'])),
-                    description: entities.decode(op.get(data, [k, 'description']))
-                })
-            }
-
-            callback(null)
-        })
-    }, err => {
+setInterval(() => {
+    getNews('http://www.artun.ee/?feed=newsticker', (err, news) => {
         if (err) { console.error(err) }
 
-        sortedEvents = _.sortBy(events, ['start', 'end', 'title'])
+        sortedNews = _.sortBy(news, ['date'])
 
-        fs.writeFile('./events.json', JSON.stringify(sortedEvents, null, 3), 'utf8', () => {
-            console.log((new Date()).toISOString(), '- Harvested events')
+        fs.writeFile('./news.json', JSON.stringify(sortedNews, null, 3), 'utf8', () => {
+            console.log((new Date()).toISOString(), '- Harvested news');
         })
     })
-})
+
+
+    getRooms('https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room', (err, rooms) => {
+        if (err) { console.error(err) }
+
+        console.log((new Date()).toISOString(), '- Harvested rooms')
+
+        var events = []
+        async.each(rooms, (room, callback) => {
+            ical.fromURL(room.ical, {}, function(err, data) {
+                if(err) { return callback(err) }
+
+                for (let k in data) {
+                    if (!data.hasOwnProperty(k)) { continue }
+                    if (op.get(data, [k, 'type']) !== 'VEVENT') { continue }
+
+                    events.push({
+                        title: room.title,
+                        info: room.info,
+                        start: op.get(data, [k, 'start']),
+                        end: op.get(data, [k, 'end']),
+                        summary: entities.decode(op.get(data, [k, 'summary'])),
+                        description: entities.decode(op.get(data, [k, 'description']))
+                    })
+                }
+
+                callback(null)
+            })
+        }, err => {
+            if (err) { console.error(err) }
+
+            sortedEvents = _.sortBy(events, ['start', 'end', 'title'])
+
+            fs.writeFile('./events.json', JSON.stringify(sortedEvents, null, 3), 'utf8', () => {
+                console.log((new Date()).toISOString(), '- Harvested events')
+            })
+        })
+    })
+}, interval)
