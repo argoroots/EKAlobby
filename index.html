@@ -59,7 +59,7 @@
             }
             #news-title {
                 display: block;
-                padding: 0px 20px;
+                padding: 10px 20px;
                 text-align: center;
                 font-weight: bold;
                 font-size: 22pt;
@@ -82,7 +82,7 @@
                 bottom: 0px;
                 z-index: 1000;
                 display: block;
-                padding-bottom: 20px;
+                padding-bottom: 5px;
                 width: 30%;
                 background: white;
                 color: #68217a;
@@ -104,7 +104,7 @@
         </table>
         <div id="news">
             <div id="news-item">
-                <img id="news-qr" data-src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl=" alt="QR" />
+                <!-- img id="news-qr" data-src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl=" alt="QR" /-->
                 <div id="news-title"></div>
                 <div id="news-text"></div>
                 <div id="news-date"></div>
@@ -165,7 +165,7 @@
                 if (m < 10) { m = '0' + m }
                 if (s < 10) { s = '0' + s }
 
-                $('#time').html(h + ts + m + '<span class="date">' + days[day] + ', ' + d + '. ' + months[month] + ' ' + year + '</span>')
+                $('#time').html(h + ts + m + '<span class="date">' + days[day] + '<br>' + d + '. ' + months[month] + ' ' + year + '</span>')
             }
             setInterval(setTime, 1000)
             setTime()
@@ -174,7 +174,7 @@
             var news = []
             var currentNews = 0
             var setNews = function () {
-                $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
+                // $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
                 $('#news-title').html(news[currentNews].title)
                 $('#news-text').html(news[currentNews].text)
                 $('#news-date').html(getDate(news[currentNews].date))
