@@ -53,23 +53,23 @@
                 background: white;
                 color: black;
             }
-            .news-qr {
+            #news-qr {
                 display: block;
                 margin: 20px auto;
             }
-            .news-title {
+            #news-title {
                 display: block;
                 padding: 0px 20px;
                 text-align: center;
                 font-weight: bold;
                 font-size: 22pt;
             }
-            .news-text {
+            #news-text {
                 display: block;
                 padding: 20pt;
                 font-size: 16pt;
             }
-            .news-date {
+            #news-date {
                 display: block;
                 padding: 0px 20px;
                 color: grey;
@@ -108,11 +108,11 @@
             </tr>
         </table>
         <div id="news">
-            <div id="news-item-{{ loop.index }}" class="news-item"{% if not loop.first %}style="display:none;"{% endif %}>
-                <img class="news-qr" src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl={{ n.link }}" alt="QR" />
-                <div class="news-title">{{ n.title }}</div>
-                <div class="news-text">{{ n.text }}</div>
-                <div class="news-date">{{ n.local_date.strftime('%d.%m.%Y') }}</div>
+            <div id="news-item">
+                <img id="news-qr" data-src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chld=L|0&chl=" alt="QR" />
+                <div id="news-title"></div>
+                <div id="news-text"></div>
+                <div id="news-date"></div>
             </div>
             <div id="time">
             </div>
@@ -120,11 +120,7 @@
     </body>
     <script>
         $(function() {
-            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
-                console.log(data)
-            })
-
-            function setTime() {
+            var setTime = function () {
                 var months = ['jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktober', 'november', 'detsember']
                 var days = ['pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev']
 
@@ -152,14 +148,24 @@
                 $('#time').html(h + ts + m + '<span class="date">' + days[day] + ', ' + d + '. ' + months[month] + ' ' + year + '</span>')
             }
             setInterval(setTime, 1000)
+            setTime()
 
-            // function set_news() {
-            //     rnd = Math.floor((Math.random() * $('.news-item').length) + 1)
-            //     $('.news-item').hide()
-            //     $('#news-item-'+rnd).show()
-            //
-            //     setTimeout(set_news, 20000)
-            // }
+
+            var news = []
+            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
+                news = data
+            })
+
+            var setNews = function () {
+                var i = Math.floor((Math.random() * news.length) + 1)
+
+                $('#news-qr').attr('src', $('#news-qr').data('src') + news[i].url)
+                $('#news-title').html(news[i].title)
+                $('#news-text').html(news[i].text)
+                $('#news-date').html(news[i].date)
+            }
+            setInterval(setNews, 20000)
+            setNews()
 
         })
     </script>
