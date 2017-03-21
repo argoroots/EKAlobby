@@ -78,6 +78,10 @@
                 font-family: 'Roboto Condensed', sans-serif;
                 font-size: 12pt;
             }
+            #news-date span {
+                display: block;
+                float: right;
+            }
             #time {
                 position: fixed;
                 right: 0px;
@@ -110,6 +114,7 @@
                 <div id="news-title"></div>
                 <div id="news-text"></div>
                 <div id="news-date"></div>
+                <div id="news-nr"></div>
             </div>
             <div id="time">
             </div>
@@ -176,13 +181,14 @@
             var news = []
             var currentNews = 0
             var setNews = function () {
-                $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
-                $('#news-title').html(news[currentNews].title)
-                $('#news-text').html(news[currentNews].text)
-                $('#news-date').html(getDate(news[currentNews].date))
-
-                currentNews++
-                if (currentNews >= news.length) { currentNews = 0 }
+                $('#news-item').fadeOut(function () {
+                    $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
+                    $('#news-title').html(news[currentNews].title)
+                    $('#news-text').html(news[currentNews].text)
+                    $('#news-date').html(getDate(news[currentNews].date) + '<span>' + (currentNews + 1) + ' / ' + news.length + '</span>')
+                    currentNews++
+                    if (currentNews >= news.length) { currentNews = 0 }
+                }).fadeIn()
             }
 
             $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
