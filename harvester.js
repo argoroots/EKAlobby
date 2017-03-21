@@ -43,7 +43,7 @@ var getRooms = (rooms_url, callback) => {
 
         let rooms = []
         for (let i = 0; i < body.length; i++) {
-            if(!op.has(body, [i, 'properties', 'calendar', 'values', 0, 'value'])) { continue }
+            if(!op.get(body, [i, 'properties', 'calendar', 'values', 0, 'value'])) { continue }
 
             rooms.push({
                 title: op.get(body, [i, 'displayname']),
