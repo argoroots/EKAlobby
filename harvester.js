@@ -5,6 +5,7 @@ const fs = require('fs')
 const ical = require('ical')
 const op = require('object-path')
 const parseString = require('xml2js').parseString
+const path = require('path')
 const request = require('request')
 
 
