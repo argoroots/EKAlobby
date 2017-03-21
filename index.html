@@ -100,7 +100,7 @@
         </style>
     </head>
     <body>
-        <table border="0">
+        <table id="events" border="0">
             <tr>
                 <td class="nowrap">{{ e.get('start').strftime('%H:%M') }} - {{ e.get('end').strftime('%H:%M') }}</td>
                 <td class="nowrap">{{ e.get('room') }}<span>{{ e.get('info') }}</span></td>
@@ -154,10 +154,11 @@
             var news = []
             var currentNews = 0
             var setNews = function () {
+                var date = new Date(news[currentNews].date)
                 $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
                 $('#news-title').html(news[currentNews].title)
                 $('#news-text').html(news[currentNews].text)
-                $('#news-date').html(news[currentNews].date)
+                $('#news-date').html(date.getDate() + '.' + date.getMonth() + 1 + '.' + date.getFullYear())
 
                 currentNews++
                 if (currentNews >= news.length) { currentNews = 0 }
@@ -171,6 +172,26 @@
             })
 
 
+            $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function(data) {
+                for (let i = 0; i < data.length; i++) {
+                    var start = new Date(data[i].start)
+                    var end = new Date(data[i].end)
+
+                    var tr = ''
+                    tr += '<tr>'
+                    tr += '<td class="nowrap">'
+                    tr += start.getHours() + ':' + start.getMinutes() + ' - ' + end.getHours() + ':' + end.getMinutes()
+                    tr += '</td>'
+                    tr += '<td class="nowrap">'
+                    tr += data[i].title + '<span>' + data[i].info + '</span>'
+                    tr += '</td>'
+                    tr += '<td>'
+                    tr += data[i].summary
+                    tr += '</td>'
+                    tr += '</tr>'
+                    $('#events').append(tr)
+                }
+            })
         })
     </script>
 </html>
