@@ -13,7 +13,7 @@ const interval = 1000 * 60 * 15
 
 
 var getNews = (news_url, callback) => {
-    request.get({url: news_url, strictSSL: true, timeout: 1000}, (err, response, body) => {
+    request.get({url: news_url, strictSSL: true, timeout: 10000}, (err, response, body) => {
         if(err) { return callback(err) }
 
         parseString(body, { trim: true, normalizeTags: true, ignoreAttrs: true }, (err, result) => {
@@ -38,7 +38,7 @@ var getNews = (news_url, callback) => {
 
 
 var getRooms = (rooms_url, callback) => {
-    request.get({url: rooms_url, strictSSL: true, json: true, timeout: 1000}, (err, response, body) => {
+    request.get({url: rooms_url, strictSSL: true, json: true, timeout: 10000}, (err, response, body) => {
         if(err) { return callback(err) }
 
         let rooms = []
