@@ -198,7 +198,7 @@
                     var tr = $(this)
                     var end = new Date(tr.data('end'))
 
-                    if (end < new Date()) { tr.hide() }
+                    if (end < new Date()) { tr.remove() }
                 })
             }
 
