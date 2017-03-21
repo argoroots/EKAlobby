@@ -57,21 +57,22 @@ var getRooms = (rooms_url, callback) => {
 
 
 setInterval(() => {
+    console.log('')
+
     getNews('http://www.artun.ee/?feed=newsticker', (err, news) => {
         if (err) { console.error(err) }
 
         sortedNews = _.sortBy(news, ['date'])
 
         fs.writeFile('./news.json', JSON.stringify(sortedNews, null, 3), 'utf8', () => {
-            console.log((new Date()).toISOString(), '- Harvested news');
+            console.log((new Date()).toISOString(), `News: ${sortedNews.length}`);
         })
     })
-
 
     getRooms('https://eka.entu.ee/api/get_entity_list?only_public=true&full_info=true&entity_definition_keyname=room', (err, rooms) => {
         if (err) { console.error(err) }
 
-        console.log((new Date()).toISOString(), '- Harvested rooms')
+        console.log((new Date()).toISOString(), `Rooms: ${rooms.length}`)
 
         var events = []
         async.each(rooms, (room, callback) => {
@@ -100,7 +101,7 @@ setInterval(() => {
             sortedEvents = _.sortBy(events, ['start', 'end', 'title'])
 
             fs.writeFile('./events.json', JSON.stringify(sortedEvents, null, 3), 'utf8', () => {
-                console.log((new Date()).toISOString(), '- Harvested events')
+                console.log((new Date()).toISOString(), `Events: ${sortedEvents.length}`)
             })
         })
     })
