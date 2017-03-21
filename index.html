@@ -5,7 +5,7 @@
         <meta name="author" content="Argo Roots">
         <meta http-equiv="refresh" content="600">
         <title>EKA Lobby</title>
-        <link href='https://fonts.googleapis.com/css?family=Voces&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed" rel="stylesheet">
         <script   src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
         <style type="text/css" media="screen, print">
             html, body, table, tr, td, div, span, h1 {
@@ -16,7 +16,7 @@
                 overflow: hidden;
                 background: #68217a;
                 color: white;
-                font-family: 'Voces', cursive;
+                font-family: 'Roboto', sans-serif;
             }
             table {
                 width: 70%;
@@ -66,6 +66,7 @@
             #news-text {
                 display: block;
                 padding: 0px 20px;
+                font-family: 'Roboto Condensed', sans-serif;
                 font-size: 14pt;
             }
             #news-date {
@@ -153,10 +154,10 @@
                 var m = date.getMinutes()
                 var s = date.getSeconds()
 
-                if (s % 2) {
-                    var ts = '·'
-                } else {
-                    var ts = '<span class="hidden">·</span>'
+                var ts = '.'
+
+                if (s % 2 !== 0) {
+                    var ts = '<span class="hidden">.</span>'
                 }
 
                 if (h < 10) { h = '0' + h }
