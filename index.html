@@ -152,17 +152,20 @@
 
 
             var news = []
+            var currentNews = 0
+
             $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
                 news = data
             })
 
             var setNews = function () {
-                var i = Math.floor((Math.random() * news.length) + 1)
+                $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
+                $('#news-title').html(news[currentNews].title)
+                $('#news-text').html(news[currentNews].text)
+                $('#news-date').html(news[currentNews].date)
 
-                $('#news-qr').attr('src', $('#news-qr').data('src') + news[i].url)
-                $('#news-title').html(news[i].title)
-                $('#news-text').html(news[i].text)
-                $('#news-date').html(news[i].date)
+                currentNews++
+                if (currentNews >= news.length) { currentNews = 0 }
             }
             setInterval(setNews, 20000)
             setNews()
