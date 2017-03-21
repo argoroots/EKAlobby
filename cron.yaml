@@ -1,4 +1,0 @@
-cron:
-- description: Cache events data
-  url: /cache
-  schedule: every 61 minutes
