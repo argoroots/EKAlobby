@@ -60,7 +60,6 @@
             #news-title {
                 display: block;
                 padding: 15px 20px 20px 20px;
-                text-align: center;
                 font-weight: bold;
                 font-size: 20pt;
             }
@@ -71,9 +70,8 @@
             }
             #news-date {
                 display: block;
-                padding: 0px 20px;
+                padding: 20px 20px;
                 color: grey;
-                text-align: right;
                 font-size: 14pt;
             }
             #time {
@@ -158,7 +156,7 @@
                 if (s % 2) {
                     var ts = ':'
                 } else {
-                    var ts = '<span class="hidden">:</span>'
+                    var ts = '<span class="hidden">·</span>'
                 }
 
                 if (h < 10) { h = '0' + h }
