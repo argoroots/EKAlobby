@@ -25,6 +25,9 @@
             tr {
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             }
+            tr.hidden {
+                display: none;
+            }
             tr:last-child {
                 border-bottom: none;
             }
@@ -121,7 +124,7 @@
         </div>
     </body>
     <script>
-        $(function() {
+        $(function () {
             var getDate = function (dtStr) {
                 var date = new Date(dtStr)
 
@@ -191,7 +194,7 @@
                 }).fadeIn()
             }
 
-            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
+            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function (data) {
                 news = data
 
                 setInterval(setNews, 20000)
@@ -208,10 +211,22 @@
                 })
             }
 
-            $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function(data) {
+            var filterEvents = function () {
+                var hash = location.hash.replace('#', '').toUpperCase()
+                $('#events tr').removeClass('hidden')
+                if (hash) {
+                    $('#events tr').not('[data-room^="' + hash + '"]').addClass('hidden')
+                }
+            }
+
+            $(window).on('hashchange', function () {
+                filterEvents()
+            })
+
+            $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function (data) {
                 for (let i = 0; i < data.length; i++) {
                     var tr = ''
-                    tr += '<tr data-end="' + data[i].end + '">'
+                    tr += '<tr data-end="' + data[i].end + '" data-room="' + data[i].title.toUpperCase() + '">'
                     tr += '<td class="nowrap">'
                     tr += getTime(data[i].start) + ' - ' + getTime(data[i].end)
                     if ((new Date(data[i].start)).toDateString() !== (new Date()).toDateString()) {
@@ -230,6 +245,7 @@
 
                 setInterval(setEvents, 60000)
                 setEvents()
+                filterEvents()
             })
         })
     </script>
