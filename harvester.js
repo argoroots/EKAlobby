@@ -64,7 +64,7 @@ setInterval(() => {
 
         sortedNews = _.sortBy(news, ['date'])
 
-        fs.writeFile('./news.json', JSON.stringify(sortedNews, null, 3), 'utf8', () => {
+        fs.writeFile('./json/news.json', JSON.stringify(sortedNews, null, 3), 'utf8', () => {
             console.log((new Date()).toISOString(), `News: ${sortedNews.length}`);
         })
     })
@@ -100,7 +100,7 @@ setInterval(() => {
 
             sortedEvents = _.sortBy(events, ['start', 'end', 'title'])
 
-            fs.writeFile('./events.json', JSON.stringify(sortedEvents, null, 3), 'utf8', () => {
+            fs.writeFile('./json/events.json', JSON.stringify(sortedEvents, null, 3), 'utf8', () => {
                 console.log((new Date()).toISOString(), `Events: ${sortedEvents.length}`)
             })
         })
