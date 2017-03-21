@@ -56,7 +56,7 @@ var getRooms = (rooms_url, callback) => {
 }
 
 
-setInterval(() => {
+var doHarvest = () => {
     console.log('')
 
     getNews('http://www.artun.ee/?feed=newsticker', (err, news) => {
@@ -105,4 +105,10 @@ setInterval(() => {
             })
         })
     })
-}, interval)
+}
+
+
+setInterval(doHarvest, interval)
+
+
+doHarvest()
