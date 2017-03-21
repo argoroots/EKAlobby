@@ -153,11 +153,6 @@
 
             var news = []
             var currentNews = 0
-
-            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
-                news = data
-            })
-
             var setNews = function () {
                 $('#news-qr').attr('src', $('#news-qr').data('src') + news[currentNews].url)
                 $('#news-title').html(news[currentNews].title)
@@ -167,8 +162,14 @@
                 currentNews++
                 if (currentNews >= news.length) { currentNews = 0 }
             }
-            setInterval(setNews, 20000)
-            setNews()
+
+            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function(data) {
+                news = data
+
+                setInterval(setNews, 20000)
+                setNews()
+            })
+
 
         })
     </script>
