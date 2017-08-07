@@ -1,6 +1,6 @@
 {
   "name": "eka-lobby",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "",
   "repository": {
     "type": "git",
@@ -9,18 +9,18 @@
   "author": "Argo Roots <argo@roots.ee>",
   "license": "MIT",
   "scripts": {
-    "start": "node ./server.js"
+    "start": "node ./worker.js"
   },
-  "main": "server.js",
+  "main": "worker.js",
   "dependencies": {
-    "async": "^2.1.5",
-    "crypto": "0.0.3",
-    "html-entities": "^1.2.0",
-    "ical": "^0.5.0",
-    "lodash": "^4.17.4",
-    "mime-types": "^2.1.12",
-    "object-path": "^0.11.4",
-    "request": "^2.81.0",
-    "xml2js": "^0.4.17"
+    "async": "2.*",
+    "crypto": "0.*",
+    "html-entities": "1.*",
+    "ical": "0.*",
+    "lodash": "4.*",
+    "mime-types": "2.*",
+    "object-path": "0.*",
+    "request": "2.*",
+    "xml2js": "0.*"
   }
 }

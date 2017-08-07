@@ -3,14 +3,18 @@ const async = require('async')
 const crypto = require('crypto')
 const entities = require('html-entities').AllHtmlEntities
 const fs = require('fs')
+const fs = require('fs')
+const http = require('http')
 const ical = require('ical')
+const mime = require('mime-types')
 const op = require('object-path')
 const parseString = require('xml2js').parseString
+const path = require('path')
 const path = require('path')
 const request = require('request')
 
 
-const interval = 1000 * 60 * 20
+const interval = process.env.INTERVAL || 1000 * 60 * 20
 
 const newsFile = path.resolve(__dirname, 'json', 'news.json')
 const eventsFile = path.resolve(__dirname, 'json', 'events.json')
@@ -137,7 +141,23 @@ var doHarvest = () => {
 }
 
 
-setInterval(doHarvest, interval)
+var server = http.createServer((request, response) => {
+    var filePath = request.url.split('?')[0]
+    var contentType = mime.lookup(path.extname(filePath)) || 'application/octet-stream'
 
+    fs.readFile(filePath, (err, content) => {
+        if (err) {
+            response.writeHead(404, { 'Content-Type': 'text/plain' })
+            response.end('404\n')
+        } else {
+            response.writeHead(200, { 'Content-Type': contentType })
+            response.end(content, 'utf-8')
+        }
+    })
+})
+
+server.listen(process.env.PORT)
 
 doHarvest()
+
+setInterval(doHarvest, interval)
