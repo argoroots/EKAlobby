@@ -3,13 +3,11 @@ const async = require('async')
 const crypto = require('crypto')
 const entities = require('html-entities').AllHtmlEntities
 const fs = require('fs')
-const fs = require('fs')
 const http = require('http')
 const ical = require('ical')
 const mime = require('mime-types')
 const op = require('object-path')
 const parseString = require('xml2js').parseString
-const path = require('path')
 const path = require('path')
 const request = require('request')
 
