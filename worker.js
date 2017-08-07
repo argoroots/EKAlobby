@@ -14,8 +14,8 @@ const request = require('request')
 
 const interval = process.env.HARVEST_INTERVAL || 1000 * 60 * 20
 
-const newsFile = path.resolve(__dirname, 'json', 'news.json')
-const eventsFile = path.resolve(__dirname, 'json', 'events.json')
+const newsFile = path.resolve(__dirname, 'static', 'news.json')
+const eventsFile = path.resolve(__dirname, 'static', 'events.json')
 var newsMd5
 var eventsMd5
 
@@ -143,7 +143,7 @@ var server = http.createServer((request, response) => {
     var filePath = request.url.split('?')[0]
     var contentType = mime.lookup(path.extname(filePath)) || 'application/octet-stream'
 
-    fs.readFile(filePath, (err, content) => {
+    fs.readFile(path.resolve(__dirname, 'static', filePath), (err, content) => {
         if (err) {
             response.writeHead(404, { 'Content-Type': 'text/plain' })
             response.end('404\n')
