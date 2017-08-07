@@ -140,8 +140,11 @@ var doHarvest = () => {
 
 
 var server = http.createServer((request, response) => {
-    var filePath = path.join(__dirname, 'static', request.url.split('?')[0])
-    console.log(filePath)
+    var filePath = path.join(__dirname, 'static', request.url)
+
+    if (filePath.indexOf('.') === -1) {
+        filePath = path.join(filePath, 'index.html')
+    }
 
     var contentType = mime.lookup(path.extname(filePath)) || 'application/octet-stream'
 
