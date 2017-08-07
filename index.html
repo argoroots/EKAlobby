@@ -194,7 +194,7 @@
                 }).fadeIn()
             }
 
-            $.getJSON('https://eka-lobby-harvester.entu.eu/news.json', function (data) {
+            $.getJSON('/json/news.json', function (data) {
                 news = data
 
                 setInterval(setNews, 20000)
@@ -223,7 +223,7 @@
                 filterEvents()
             })
 
-            $.getJSON('https://eka-lobby-harvester.entu.eu/events.json', function (data) {
+            $.getJSON('/json/events.json', function (data) {
                 for (let i = 0; i < data.length; i++) {
                     var tr = ''
                     tr += '<tr data-end="' + data[i].end + '" data-room="' + data[i].title.toUpperCase() + '">'
