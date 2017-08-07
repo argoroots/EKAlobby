@@ -140,10 +140,12 @@ var doHarvest = () => {
 
 
 var server = http.createServer((request, response) => {
-    var filePath = request.url.split('?')[0]
+    var filePath = path.resolve(__dirname, 'static', request.url.split('?')[0])
+    console.log(filePath)
+
     var contentType = mime.lookup(path.extname(filePath)) || 'application/octet-stream'
 
-    fs.readFile(path.resolve(__dirname, 'static', filePath), (err, content) => {
+    fs.readFile(filePath, (err, content) => {
         if (err) {
             response.writeHead(404, { 'Content-Type': 'text/plain' })
             response.end('404\n')
