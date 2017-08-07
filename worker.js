@@ -14,7 +14,7 @@ const path = require('path')
 const request = require('request')
 
 
-const interval = process.env.INTERVAL || 1000 * 60 * 20
+const interval = process.env.HARVEST_INTERVAL || 1000 * 60 * 20
 
 const newsFile = path.resolve(__dirname, 'json', 'news.json')
 const eventsFile = path.resolve(__dirname, 'json', 'events.json')
