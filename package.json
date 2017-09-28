@@ -9,7 +9,9 @@
   "author": "Argo Roots <argo@roots.ee>",
   "license": "MIT",
   "scripts": {
-    "start": "node ./worker.js"
+    "start": "node ./worker.js",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "main": "worker.js",
   "dependencies": {
@@ -21,6 +23,8 @@
     "mime-types": "2.*",
     "object-path": "0.*",
     "request": "2.*",
-    "xml2js": "0.*"
-  }
+    "xml2js": "0.*",
+    "snyk": "^1.41.1"
+  },
+  "snyk": true
 }
