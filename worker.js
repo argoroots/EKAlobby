@@ -27,7 +27,7 @@ var getNews = (news_url, callback) => {
         parseString(body, { trim: true, normalizeTags: true, ignoreAttrs: true }, (err, result) => {
             if(err) { return callback(err) }
 
-            const rss = op.get(result, 'rss.channel.0.item')
+            const rss = op.get(result, 'rss.channel.0.item', [])
 
             let news = []
             for (let i = 0; i < rss.length; i++) {
