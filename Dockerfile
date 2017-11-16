@@ -1,4 +1,4 @@
-FROM node:6-slim
+FROM node:8-slim
 
 ADD ./ /usr/src/eka_lobby
 RUN cd /usr/src/eka_lobby && npm --silent --production install
