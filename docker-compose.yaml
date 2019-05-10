@@ -1,0 +1,31 @@
+version: '3'
+services:
+
+    ekalobby:
+        build:
+            context: https://github.com/argoroots/EKAlobby.git
+        container_name: ekalobby
+        restart: always
+        environment:
+            NODE_ENV: production
+            PORT: 80
+        volumes:
+            - /data/ekalobby:/usr/src/ekalobby/json
+
+    nginx:
+        image: 'nginx:1.14'
+        container_name: nginx
+        restart: always
+        ports:
+            - '80:80'
+            - '443:443'
+        volumes:
+            - /data/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - /data/nginx/ssl/dhparams.pem:/etc/nginx/dhparams.pem:ro
+            - /data/nginx/sites:/etc/nginx/conf.d:ro
+            - /data/nginx/log:/var/log/nginx
+            - /data/letsencrypt/certs/archive:/etc/nginx/letsencrypt/archive:ro
+            - /data/letsencrypt/certs/live:/etc/nginx/letsencrypt/live:ro
+            - /data/letsencrypt/static:/etc/nginx/letsencrypt/static:ro
+        depends_on:
+            - ekalobby
